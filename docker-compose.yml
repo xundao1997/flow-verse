@@ -1,0 +1,54 @@
+services:
+  # This compose file assumes MySQL and Redis already exist outside the stack.
+  # It packages only the application containers and passes middleware endpoints
+  # through environment variables.
+  backend:
+    image: registry.cn-hangzhou.aliyuncs.com/${REGISTRY_NAMESPACE}/verse-agent:latest
+    container_name: verse-agent
+    restart: always
+    command:
+      [
+        "uvicorn",
+        "verse_agent.main:create_app",
+        "--factory",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ]
+    ports:
+      - "8000:8000"
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      APP_ENV: ${APP_ENV}
+      APP_DEBUG: ${APP_DEBUG}
+      APP_TIMEZONE: ${APP_TIMEZONE}
+      DATABASE__HOST: ${MYSQL_HOST}
+      DATABASE__PORT: ${MYSQL_PORT}
+      DATABASE__USER: ${MYSQL_USER}
+      DATABASE__PASSWORD: ${MYSQL_PASSWORD}
+      DATABASE__NAME: ${MYSQL_DATABASE}
+      REDIS__HOST: ${REDIS_HOST}
+      REDIS__PORT: ${REDIS_PORT}
+      REDIS__PASSWORD: ${REDIS_PASSWORD}
+      REDIS__DB: ${REDIS_DB}
+      CELERY__BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY__RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+    networks:
+      - app-network
+
+  frontend:
+    image: registry.cn-hangzhou.aliyuncs.com/${REGISTRY_NAMESPACE}/verse-web:latest
+    container_name: verse-web
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
