@@ -1,14 +1,12 @@
 """Centralized application settings."""
 
 from functools import lru_cache
-from pathlib import Path
 from urllib.parse import quote, urlsplit
 
 from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
 
-BASE_DIR = Path(__file__).resolve().parents[3]
 DEFAULT_PLACEHOLDER_PASSWORD = "change_me"
 LOCAL_HOSTS = {"127.0.0.1", "localhost", "0.0.0.0", "::1"}
 
@@ -17,7 +15,7 @@ class LoggingSettings(BaseModel):
     """Logging configuration."""
 
     level: str = "INFO"
-    directory: Path = BASE_DIR / "logs"
+    directory: str = "logs"
     file_name: str = "verse-agent.log"
     rotation: str = "10 MB"
     retention: str = "14 days"

@@ -42,7 +42,9 @@ def _configure_stdlib_logging() -> None:
 
 
 def _log_file_path(settings: LoggingSettings) -> Path:
-    directory = Path(settings.directory)
+    directory = Path(settings.directory).expanduser()
+    if not directory.is_absolute():
+        directory = Path.cwd() / directory
     directory.mkdir(parents=True, exist_ok=True)
     return directory / settings.file_name
 
