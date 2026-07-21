@@ -2,7 +2,7 @@
 
 ## Package Review State
 
-**AWAITING_PACKAGE**
+**IN_REVIEW**
 
 This global state describes receipt/review of the latest package revision. Code gates read the matching row in Approval Scopes, not this global state.
 
@@ -23,7 +23,13 @@ Allowed transitions:
 
 | Scope ID | Package revision | Scope type and description | State | Exact evidence / decision | Approved by and date | Deferred unrelated Unknowns |
 |---|---|---|---|---|---|---|
-| TBD | TBD | Bootstrap or implementation slice — do not infer | AWAITING_PACKAGE | None | None | TBD |
+| FV1-PRODUCT-DESIGN | PRD v1.1 / UIUX Phase 1 | Product scope, user journeys, UIUX contracts, design tokens, product acceptance, and product non-functional requirements | APPROVED | User selected the external PRD/UIUX package as the new authority, 2026-07-13; package hashes below | User, 2026-07-13 | Runtime, architecture, API, schema, provider contracts, deployment, executable commands |
+| FV1-ARCH-BASELINE | Service-directory decision 2026-07-15 | Separate Web, API and Worker code services; singular module ownership; PostgreSQL operational dependency; no direct cross-service source imports | APPROVED | User explicitly required service-based directories and code in separate modules on 2026-07-15; ADR-0002 supersedes ADR-0001 | User, 2026-07-15 | Business schemas and APIs, authentication, asynchronous API/Worker contract, AI/provider contracts, object-storage provider, executable production CD and unmeasured scale |
+| FV1-BOOTSTRAP | Service bootstrap decision 2026-07-15 | Non-business Web/API/Worker service skeleton under `services/`; API native runtime and Worker check; separate manifests/locks/images, health/logging/migration entry points, architecture checks and tests | APPROVED | User instruction on 2026-07-15 approves the service-directory boundary; implementation evidence is recorded in the engineering registries | User, 2026-07-15 | Every product behavior and product acceptance slice; Web source/lock/runtime; long-running Worker; object-storage runtime; Redis/message broker; bound cloud execution/CD; production SLO verification |
+| FV1-DELIVERY-BOOTSTRAP | Yunxiao delivery decisions 2026-07-15/16 | Historical Yunxiao Flow, ACR and host Docker delivery scope | SUPERSEDED | Replaced by the user's local-test-only deployment decision on 2026-07-21; ADR-0006 supersedes ADR-0003 and the delivery portions of ADR-0004/0005 | User, superseded 2026-07-21 | Any future CI/CD or production target requires a new decision |
+| FV1-LOCAL-RUNTIME | Native local-start decision 2026-07-16 | Local development runs native Python/Node processes; root Compose is removed; PostgreSQL is independently supplied through configuration | APPROVED | User explicitly required direct local startup without Docker on 2026-07-16; ADR-0004; completed by ADR-0005/0006 | User, 2026-07-16/21 | PostgreSQL installation/provisioning and any future production topology |
+| FV1-DIAGNOSTIC-BOOTSTRAP | Deployment-verification decision 2026-07-20 | Non-business Web Check page, synchronous API-to-Worker readiness diagnostic and native three-service startup | APPROVED | User instructed Codex to fix all reviewed issues so the architecture can be locally deployment-verified; ADR-0005 with production-delivery portion superseded by ADR-0006 | User, 2026-07-20/21 | Business execution, authentication, PostgreSQL provisioning and production delivery |
+| FV1-LOCAL-TEST-DEPLOY | Local deployment replacement 2026-07-21 | Remove the Yunxiao repository deployment directory and provide one native local test deployment command | APPROVED | User explicitly requested local startup/deployment for testing instead of Yunxiao; ADR-0006 | User, 2026-07-21 | CI/CD, staging/production environment and remote rollout/rollback |
 
 Each scope row follows the same review transitions independently. A revised package moves only affected rows back to IN_REVIEW; unaffected APPROVED rows remain valid unless the user supersedes them.
 
@@ -33,15 +39,41 @@ APPROVED accepts the package revision and named scope; it does not claim every f
 
 | Field | Value |
 |---|---|
-| Package name | TBD — do not infer |
-| Original location | TBD — do not infer |
-| Received date and timezone | TBD — do not infer |
-| Size and file count | TBD — do not infer |
-| Integrity hash | TBD — do not infer |
-| Declared V1 revision | TBD — do not infer |
-| User-designated authority | TBD — do not infer |
+| Package name | FlowVerse PRD v1.1 + FlowVerse Phase 1 AI 长篇小说创作工作台 UIUX MVP |
+| Original location | `D:\流域\FlowVerse_V1_需求分析与产品方案_PRD.md`; `D:\流域\FlowVerse_UIUX_MVP.zip` |
+| Received date and timezone | Reviewed 2026-07-13, Asia/Shanghai (UTC+08:00) |
+| Size and file count | PRD: 214,399 bytes, 1 file; UIUX ZIP: 10,569,381 bytes, 98 entries |
+| Integrity hash | PRD SHA-256 `760BA720382C2AF8648E0378C74623AF33D85E09407ED965C81A0F0F1467F049`; ZIP SHA-256 `470AF5B00E52BCA3B883AF67D801A3FE4A21595DC09DCB9637937B63DB2B17DD` |
+| Declared V1 revision | PRD v1.1, finalized 2026-07-12; UIUX package generated 2026-07-12 |
+| User-designated authority | Product and UIUX authority, explicit user decision 2026-07-13 |
 
 Preserve the original package unchanged. Extract or convert only into a separate working location.
+
+References in PRD v1.1 to a v0.8 direction brainstorm describe document provenance only. No v0.x application, implementation baseline, migration source, upgrade path, or compatibility requirement is approved.
+
+## Artifact Inventory and Classification
+
+| Artifact | Classification | Approved scope | Evidence / notes |
+|---|---|---|---|
+| `FlowVerse_V1_需求分析与产品方案_PRD.md` | Authoritative specification | Product scope, flows, states, acceptance, product NFRs, and product constraints on later architecture | Header: PRD v1.1; sections 3, 4, 5, 6, 7, and 8 |
+| UIUX `README.md` | Authoritative design overview | Phase 1 information architecture, design principles, responsive policy, and workflow-visualization boundary | ZIP root README |
+| `DesignSpec/pages.json` | Authoritative design contract | Page/surface contracts, states, route intent, component composition, and responsive behavior | Contract examples do not approve backend APIs or routes as implementation contracts |
+| `DesignSpec/components.json` | Authoritative design contract | Component/state requirements | Component names are design identifiers, not evidence of source modules |
+| `DesignSpec/tokens.json` | Authoritative design contract | Semantic visual tokens, breakpoints, typography, motion, and accessibility | Canonical design input for later approved frontend bootstrap |
+| `DesignSpec/state_matrix.json` | Authoritative acceptance inventory | 130 UIUX scenarios and screenshot coverage mapping | Test implementation remains NotYetImplemented |
+| `DesignSpec/interaction.md`, `workflow.md`, `frontend-handoff.md`, `frontend-types.ts` | Reference with normative product constraints | Interaction semantics, formal-action safety, read-only Agent trace, and candidate/formal boundaries | Suggested routes, TypeScript shapes, request names, and libraries require engineering approval |
+| `UI设计稿/` and `Prototype/` | Authoritative visual reference | 63 screenshots, responsive examples, and clickable interaction reference | Reference material, not runnable product source or implementation baseline |
+| `Source/` | Package validation tooling reference | Package-only rendering and validation | Not repository tooling; commands are not approved project commands |
+| `DesignSpec/validation-report.json` | Generated output | Package self-check only | Reports passed, but multiple passing checks contain missing/not-found detail; cannot prove package completeness or repository acceptance alone |
+
+## Intake Conclusions
+
+- Product/design scope is approved and supersedes the previous repository product/UIUX interpretation.
+- The package contains no approved application source, manifest, lockfile, runtime, backend implementation, database, deployment configuration, or repository command.
+- React and TypeScript appear as frontend recommendations; Python was separately user-directed. Exact versions, framework/runtime choices, dependencies, and commands remain Proposed or Unknown in `../engineering/TECH_STACK.md`.
+- Architecture must preserve the PRD 7.11 invariants, but module boundaries, APIs, schemas, queues, caches, storage, providers, and deployment topology require Proposed ADRs and user acceptance.
+- UIUX self-validation anomalies are recorded as a package-quality risk; exact asset and scenario verification remains required before implementation acceptance.
+- Independent intake verification on 2026-07-13 confirmed 98 ZIP entries, 6 JSON files, 63 PNG files, all named core artifacts above, and 130 continuously numbered state scenarios from 1 through 130. This verifies inventory only, not product implementation or visual correctness.
 
 ## Artifact Classification
 

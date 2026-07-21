@@ -2,33 +2,36 @@
 
 ## V1 and Evidence
 
-- [ ] Work treats V1 as the first implementation and assumes no v0.x product or redesign baseline.
+- [ ] Work treats V1 as the first implementation; earlier direction-document provenance creates no legacy runtime, migration, redesign, or compatibility obligation.
 - [ ] V1 package intake is APPROVED for the active bootstrap or implementation slice.
 - [ ] Task-relevant target/runtime stack, version, command, asset, API, and applicable budget facts satisfy the matching readiness gate with exact evidence.
 - [ ] No assumption, example, unavailable check, or diagnostic result is reported as project fact or success.
 
 ## Product
 
-- [ ] AI Assistant First is obvious on the first screen.
-- [ ] Users can begin without understanding spaces.
-- [ ] Complex workspaces are generated results, not first-level modules.
-- [ ] The experience avoids Dashboard and Workflow Builder mental models.
-- [ ] Chapter writing remains the primary creative surface.
+- [ ] The work home exposes the shared Bot and deterministic task entry points together; Bot failure does not block structured work.
+- [ ] Candidate, formal content, memory, external facts, feedback, analysis, and human decision remain distinct and traceable.
+- [ ] Actual-release confirmation and Cycle creation are atomic, one task has at most one active Cycle, and only a human decision normally closes a valid Cycle.
+- [ ] AI and administrators never silently confirm user business facts.
+- [ ] Agent execution is read-only and does not expose free Agent creation, Prompt editing, arbitrary wiring, custom DAGs, or a general Workflow Builder.
+- [ ] Product copy makes no automated-publishing, growth, causality, income, or market-validation promise.
 
 ## UI
 
 - [ ] The palette follows ../uiux/DESIGN_TOKENS.md and body text is not pure black.
 - [ ] The interface remains calm and readable during long sessions.
 - [ ] Cards, effects, metrics, and panels are restrained.
-- [ ] Layouts at 1440 × 900 and 390 × 844 preserve manuscript priority.
+- [ ] Layouts at 1440 × 900 and 1280 × 720 preserve formal state, evidence, manuscript usability, and the primary action.
+- [ ] At 390 × 844, approved content remains readable while prohibited complex/business actions are disabled with an explanation.
 - [ ] Keyboard navigation, focus, contrast, labels, and reduced motion are verified.
 
 ## Interaction and Copy
 
-- [ ] Every page answers location, AI help, and next action.
+- [ ] Every page identifies task/Cycle/object/version/authority context, semantic state, next action, impact, and recovery.
 - [ ] Each page state has one primary CTA.
-- [ ] Health checks show risk, reason, suggestion, and blocking status without a score.
-- [ ] World-history confirmation explains what will change.
+- [ ] Bot replies and action cards are distinct; text alone changes no business state and cards revalidate before action.
+- [ ] Formal commands show current scope/version/impact, reject duplicate or stale submission, preserve input on failure, and wait for authoritative success.
+- [ ] Observation, AI analysis candidate, recommendation, and human decision use distinct labels.
 - [ ] User-facing copy avoids implementation jargon from ../uiux/COPY_RULES.md.
 - [ ] Loading, empty, error, recovery, disabled, and unsaved states are covered where applicable.
 

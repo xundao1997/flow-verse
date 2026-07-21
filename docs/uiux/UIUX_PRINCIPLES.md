@@ -1,44 +1,60 @@
 # FlowVerse UIUX Principles
 
-## Design Direction
+## Authority and Direction
 
-**Ambient AI Creative Space**
+The approved direction is an **editorial workbench with restrained AI presence**: warm, calm, traceable, recovery-oriented, and suitable for long-form writing. Exact contracts and visual references come from the UIUX package identified in `../intake/V1_PACKAGE_INTAKE.md`.
 
-- Warm, calm, quiet, and comfortable for long sessions
-- A creative companion rather than an operational console
-- Subtle AI ambience with an Eastern writing sensibility
-- A sense of worlds evolving over time
+## Product Hierarchy
 
-## Visual Hierarchy
+1. Current formal content, evidence, and business state.
+2. The single next action allowed by the current state.
+3. Candidate differences, Review findings, and user decisions.
+4. Actual Agent/model participation, execution progress, cost, and recovery.
+5. Supporting navigation, settings, activity, and system status.
 
-1. The current creative action
-2. What AI is helping with now
-3. Relevant world and chapter context
-4. Supporting entry points
-5. System status
+AI appearance must come from process transparency, provenance, and precise feedback. It must not crowd out manuscripts, formal records, or evidence.
 
-## Interaction Principles
+## Work Home
 
-1. Let users express intent before teaching system structure.
-2. Let AI assess whether the task is simple or complex.
-3. Finish simple tasks in conversation.
-4. Generate a workspace for complex, sustained work.
-5. Make the next useful action clear at every step.
-6. Keep one primary CTA per page.
+- P01 is the work home, not a marketing page, isolated task list, or generic chatbot homepage.
+- Keep the shared Bot, continue work, pending summary, and complete task list visible as independent regions.
+- Natural-language and deterministic entry points operate on the same business state and remain usable independently.
+- Bot replies and action cards are separate. No navigation, draft write, task creation, business execution, or formal mutation occurs until the user activates the explicit action.
+- Ambiguous task, Cycle, object, or action context requires a visible choice; never silently select the most recent item.
 
-## Reading and Layout
+## Creation and Formality
 
-- Give manuscript content the largest, quietest visual area.
-- The default desktop chapter workspace uses left context, a dominant center manuscript, and right AI assistance.
-- The center manuscript is the largest continuous pane; side regions are collapsible.
-- When three panes cannot preserve manuscript priority, collapse side regions instead of shrinking the editor.
-- Mobile prioritizes manuscript content; AI assistance collapses and status information follows.
-- Maintain readable line length, contrast, focus states, keyboard access, and motion reduction.
+- Manuscript and formal content receive the largest, quietest usable area.
+- Visually distinguish candidate, primary candidate, accepted risk, formal content, observation, analysis, recommendation, and human decision.
+- A primary candidate always retains “尚未正式确认” until formal confirmation succeeds.
+- Formal mutations use specific confirmation copy, show object/version/impact, reject duplicate submission, and wait for authoritative success.
+- Historical snapshots, attempts, corrections, and decisions are read-only and never visually imply overwrite.
+
+## Agent and Workflow Visualization
+
+- Show only actually activated business roles and actual model participation.
+- Agent execution is a read-only trace with inputs, handoffs, versions, attempts, partial results, cost, failures, and user checkpoints.
+- Do not expose free Agent creation, Prompt editing, arbitrary wiring, topology mutation, custom DAG persistence, or a general Workflow Builder.
+- Agent detail supports understanding and recovery; it is not an independent chat surface or first-level product area.
+
+## Primary Action and States
+
+- Exactly one action receives primary visual emphasis in each page state.
+- Disabled formal actions remain discoverable and explain every blocking reason and recovery path.
+- Loading, empty, failure, stale, offline, partial, budget, policy, compliance, unsaved, and cancellation states preserve valid content and deterministic navigation.
+- Progress shows real stage, updated time, completed outputs, and cost; never fabricate a percentage.
+
+## Reading, Responsive, and Accessibility
+
+- Baseline: 1440 × 900. Minimum desktop: 1280 × 720.
+- At wide desktop, keep the writing surface dominant and contextual regions secondary.
+- At compact desktop, convert fixed context into an overlay before reducing manuscript usability.
+- At 390 × 844, preserve readable task/status/formal content; disable complex creation, Bot execution, formal confirmation, release, decision, task control, and admin with “请使用桌面端继续此操作”.
+- Maintain keyboard navigation, visible focus, semantic landmarks, focus return, error association, reduced motion, and non-color state cues.
 
 ## Avoid
 
-- Traditional admin panels and blue enterprise SaaS styling
-- Black-purple cyberpunk, neon glow, scan lines, or particle noise
-- Dense card grids, charts, KPI panels, and “big screen” analytics
-- Dify-like workflow UI or Notion-like document Dashboard
-- Decoration that competes with long-form reading
+- Sci-fi dashboards, neon graphs, animated data-flow spectacle, dense KPI walls, or decoration competing with text.
+- Treating AI output, Agent summaries, or administrator actions as user-confirmed fact.
+- Hiding formal state or the primary action at 1280 desktop width.
+- Multiple peer primary actions, invisible disabled reasons, destructive ambiguity, or silent optimistic formal updates.

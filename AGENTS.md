@@ -1,8 +1,8 @@
 # FlowVerse Agent Instructions
 
 ## Version Identity
-- FlowVerse V1 is the first product release and an initial implementation.
-- No v0.x product, predecessor app, legacy behavior, migration source, upgrade path, or redesign baseline exists.
+- FlowVerse V1 is the first implemented product release. References in PRD v1.1 to earlier direction drafts are provenance only, not evidence of a predecessor application, runtime baseline, migration, or compatibility obligation.
+- The approved product/design baseline is PRD v1.1 plus the FlowVerse Phase 1 UIUX MVP package identified in docs/intake/V1_PACKAGE_INTAKE.md.
 - Read package state and approved scope only from docs/intake/V1_PACKAGE_INTAKE.md; do not copy dynamic status or infer missing facts.
 
 ## Sources of Truth
@@ -14,11 +14,12 @@
 - Resolve conflicts by docs/governance/EVIDENCE_POLICY.md; stop the affected work instead of choosing silently.
 
 ## Key Conventions
-- FlowVerse is AI Assistant First; users express intent before learning system structure.
-- Simple tasks finish in conversation; complex tasks generate a creative workspace.
-- Do not expose Workflow, Agent, Prompt, RAG, or node-graph concepts in user-facing UI.
-- The homepage is not a Dashboard; chapter writing is the main stage.
-- World state is narrative insight, not KPI analytics.
+- FlowVerse is a multi-model, multi-Agent novel creation and real-operation loop workbench; AI output is always a candidate and humans confirm every formal fact.
+- The work home combines one shared Bot capability, continue work, pending work, and the complete task list; Bot failure must not block deterministic entry points.
+- One novel task progresses through Stage 0, initial creation, manual external release, feedback, formal analysis, human decision, and successive Cycle N iterations.
+- Agent execution topology is read-only. Do not expose free Agent creation, Prompt editing, arbitrary wiring, custom DAGs, or a general Workflow Builder.
+- User and administrator permissions are separate; administrators configure, monitor, and audit but never impersonate users or confirm user business facts.
+- Desktop Web is primary. At 390 x 844, business content is read-only and complex creation, execution, confirmation, release, decision, and admin actions remain disabled.
 - Use one primary CTA per page and a low-saturation, warm, readable visual system.
 - Modules are cohesive, data ownership is singular, public contracts are explicit, and production dependencies are directed and acyclic.
 - Extensibility requires a confirmed variation; prefer the simplest local design over speculative abstraction.

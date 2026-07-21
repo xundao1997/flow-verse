@@ -35,22 +35,22 @@ These values are reference proposals, not release gates, until the approved V1 s
 
 | Budget area | Applicability | Gate stage | Type | Target / warning / failure | Environment or scale | Evidence | Status | Owner |
 |---|---|---|---|---|---|---|---|---|
-| Target browsers and devices | Unknown | Intake | Lab / Field | TBD — do not infer | TBD | None | Unknown | User |
+| Target browsers and devices | Required | Intake | Lab / Field | Chrome and Edge latest two major versions; desktop primary; mobile business surfaces read-only | 1440 × 900 baseline; 1280 × 720 minimum desktop; 390 × 844 mobile evidence | PRD v1.1 section 7.9 and UIUX tokens/package | Confirmed | User/product |
 | Lab CPU, network, and cache | Unknown | Bootstrap | Lab | TBD — do not infer | TBD | None | Unknown | User |
 | RUM tool and page scope | Unknown | Post-release | Field | TBD — do not infer | TBD | None | Unknown | User |
 | Field sample and time window | Unknown | Post-release | Field | TBD — do not infer | TBD | None | Unknown | User |
 | JS / CSS / font / image / transfer | Unknown | Pre-release | Lab | TBD — do not infer | TBD | None | Unknown | User |
-| Homepage and route readiness | Unknown | Pre-release | Lab | TBD — do not infer | TBD | None | Unknown | User |
-| Chapter length and history scale | Unknown | Intake | Test data | TBD — do not infer | TBD | None | Unknown | User |
+| Homepage and route readiness | Required | Pre-release | Lab | Ordinary open/switch/filter/save feedback P95 <= 2s, excluding model and file-processing wait; deterministic work-home regions meet this during Bot failure | Approved browsers/viewports; exact dataset and command TBD | PRD v1.1 section 7.9 | Confirmed target; measurement plan Unknown | User/product |
+| Chapter length and history scale | Required | Intake | Test data | Initial validation default: 20-chapter outline plus first 3 chapters; long-session/history upper bounds still require confirmation | One real novel task; exact characters/bytes/versions TBD | PRD v1.1 sections 3.8 and 7.1 | Proposed pending engineering scale | User |
 | Rendered DOM / window bound | Unknown | Implementation | Lab | TBD — do not infer | TBD | None | Unknown | User |
 | History, chat, and cache capacity | Unknown | Implementation | Lab | TBD — do not infer | TBD | None | Unknown | User |
 | Typing, Chinese IME, selection, scroll | Unknown | Pre-release | Lab | TBD — do not infer | TBD | None | Unknown | User |
-| Background persistence, if approved | Unknown | Pre-release | Lab | TBD — do not infer | TBD | None | Unknown | User |
-| API latency and throughput measurement | Unknown | Pre-release | Lab / Field | TBD — do not infer | TBD | None | Unknown | User |
-| AI visible response and completion | Unknown | Pre-release | Lab / Field | TBD — do not infer | TBD | None | Unknown | User |
+| Background persistence, if approved | Required | Pre-release | Lab | Save status visible <= 2s after user action; draft save starts after 5s idle; formal confirmation saves immediately | Approved editor dataset and interruption scenarios TBD | PRD v1.1 section 7.9 | Confirmed target; measurement plan Unknown | User/product |
+| API latency and throughput measurement | Required | Pre-release | Lab / Field | Ordinary page actions P95 <= 2s; exact boundary breakdown and throughput target TBD | One default user + one admin MVP; approved lab command TBD | PRD v1.1 section 7.9 | Confirmed latency target; remaining plan Unknown | User/product |
+| AI visible response and completion | Required | Pre-release | Lab / Field | Status <= 2s after Bot send/business start; understandable update or explicit external wait at least every 10s; execution deadline 30m; reference usable-state target 3m | Approved provider scenarios and raw timing command TBD | PRD v1.1 section 7.9 | Confirmed target; measurement plan Unknown | User/product |
 | AI streaming buffer, if approved | Unknown | Implementation | Lab | TBD — do not infer | TBD | None | Unknown | User |
 | AI context size, token, and cost measurement | Unknown | Implementation | Lab / Field | TBD — do not infer | TBD | None | Unknown | User |
-| Throughput and saturation measurement | Unknown | Implementation | Lab | TBD — do not infer | TBD | None | Unknown | User |
+| Throughput and saturation measurement | Required | Implementation | Lab | One user paid slot; one business step per task; up to three model calls within a step; queues remain responsive and cancellable before start | One user + admin MVP; exact backlog/queue capacity TBD | PRD v1.1 sections 3.10 and 7.9; reliability registry | Confirmed concurrency bound; capacity plan Unknown | User/product |
 | Memory and long-session growth | Unknown | Pre-release | Lab | TBD — do not infer | TBD | None | Unknown | User |
 | Regression warning / failure delta | Unknown | Post-bootstrap | Lab / Field | TBD after noise baseline | TBD | None | Unknown | User |
 
@@ -101,3 +101,12 @@ Optimization must not break drafts, consistency, accessibility, IME, cursor, sel
 ## Performance Handoff
 
 For affected scenarios, report build, environment, data scale, tool and command, baseline, budget, raw results, after-result, delta, stage, pass/fail/unverified status, functional safety, and remaining risk. Otherwise report N/A with reason.
+
+## Diagnostic-bootstrap baseline
+
+- Scope: the non-business Check page adds one user-triggered Web → API → Worker diagnostic path. It does not add product data, AI execution, caching, streaming, timers or background polling.
+- Production build, Windows, Node.js 24.17.0, pnpm 11.10.0, Vite 8.1.4, `corepack pnpm@11.10.0 --dir services/web run build`, final execution on 2026-07-21: HTML 0.63 kB / 0.43 kB gzip; CSS 4.76 kB / 1.65 kB gzip; JavaScript 195.52 kB / 62.22 kB gzip; build transform reported 129 ms. This is a one-execution raw baseline, not a product release budget or field-performance claim.
+- A superseded request is cancelled and stale responses cannot overwrite current state. The page checks once on load and only again after the single explicit action; polling and retry are absent.
+- The API → Worker deadline is two seconds with zero retries. End-to-end PostgreSQL-connected latency remains Unverified because no local PostgreSQL server is configured.
+- Container image sizes/startup, CI build duration/cache behavior, remote deployment duration and field Web Vitals are N/A for the current local-only deployment target and remain Unverified until those targets and measurement environments are separately approved.
+- Product AI latency, throughput, editor interaction, memory and long-session budgets are N/A for this non-business diagnostic slice.
