@@ -1,24 +1,24 @@
 # Frontend Agent Instructions
 
 ## Scope
-- Applies only under frontend/ and extends ../AGENTS.md.
+- Applies only under services/web/ and extends ../../AGENTS.md.
 - Presence of this file does not prove a framework, package manager, source layout, or current implementation state.
 
 ## Required Reading
-- ../docs/product/V1_PRODUCT_BRIEF.md
-- ../docs/intake/V1_PACKAGE_INTAKE.md
-- ../docs/engineering/TECH_STACK.md
-- ../docs/engineering/ARCHITECTURE_STANDARD.md
-- ../docs/engineering/ARCHITECTURE_BASELINE.md
-- ../docs/engineering/RELIABILITY_BUDGET.md
-- ../docs/engineering/TECH_DEBT_REGISTER.md
-- ../docs/engineering/AI_CODING_WORKFLOW.md
-- ../docs/engineering/PERFORMANCE_BUDGET.md
-- ../docs/uiux/UIUX_PRINCIPLES.md
-- ../docs/uiux/DESIGN_TOKENS.md
-- ../docs/uiux/INTERACTION_RULES.md
-- ../docs/uiux/COPY_RULES.md
-- ../docs/uiux/ACCEPTANCE_CRITERIA.md
+- ../../docs/product/V1_PRODUCT_BRIEF.md
+- ../../docs/intake/V1_PACKAGE_INTAKE.md
+- ../../docs/engineering/TECH_STACK.md
+- ../../docs/engineering/ARCHITECTURE_STANDARD.md
+- ../../docs/engineering/ARCHITECTURE_BASELINE.md
+- ../../docs/engineering/RELIABILITY_BUDGET.md
+- ../../docs/engineering/TECH_DEBT_REGISTER.md
+- ../../docs/engineering/AI_CODING_WORKFLOW.md
+- ../../docs/engineering/PERFORMANCE_BUDGET.md
+- ../../docs/uiux/UIUX_PRINCIPLES.md
+- ../../docs/uiux/DESIGN_TOKENS.md
+- ../../docs/uiux/INTERACTION_RULES.md
+- ../../docs/uiux/COPY_RULES.md
+- ../../docs/uiux/ACCEPTANCE_CRITERIA.md
 
 ## Stack Gate
 - Business code uses only a Confirmed target stack with Confirmed resolved runtime entries and commands whose evidence is Confirmed and execution is Available.
@@ -48,7 +48,7 @@
 - Local reversible optimization requires measured need; new dependencies, workers, global/persistent cache semantics, or architecture changes also require approval.
 
 ## Validation
-- Run only commands with Confirmed evidence and Available execution state in ../docs/engineering/TECH_STACK.md; prefer file-scoped checks.
-- Use a production build and the workflow in ../docs/engineering/PERFORMANCE_BUDGET.md for performance conclusions.
+- Run only commands with Confirmed evidence and Available execution state in ../../docs/engineering/TECH_STACK.md; prefer file-scoped checks.
+- Use a production build and the workflow in ../../docs/engineering/PERFORMANCE_BUDGET.md for performance conclusions.
 - Verify required viewports, keyboard behavior, accessibility, and visual evidence.
 - If tooling, baseline, data scale, or budget is missing, report Unverified and stop the affected delivery.

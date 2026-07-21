@@ -2,9 +2,9 @@
 
 ## State
 
-**UNVERIFIED — package baseline audit not completed**
+**BASELINED — NON-BUSINESS SERVICE BOOTSTRAP AUDITED**
 
-No entries yet is not evidence that the package or future implementation has no debt.
+The 2026-07-15 service-directory bootstrap introduced no temporary production compatibility path or accepted debt. The duplicated API/Worker runtime probe helpers are an explicit ADR-0002 service-autonomy trade-off, not an accepted abstraction debt; reconsider only after a confirmed shared lifecycle. FastAPI's current TestClient emits an upstream httpx deprecation warning, recorded as an unverified dependency risk rather than accepted debt because no replacement dependency is approved.
 
 ## Severity
 
