@@ -1,0 +1,279 @@
+name: flowverse-middleware
+
+x-logging: &default-logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "5"
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile_inline: |
+        # syntax=docker/dockerfile:1.7
+        ARG POSTGRES_VERSION=18.4
+
+        FROM postgres:$${POSTGRES_VERSION}-bookworm AS extension-builder
+
+        ARG PGVECTOR_VERSION=0.8.5
+        ARG TIMESCALEDB_VERSION=2.28.3
+
+        RUN apt-get update \
+            && apt-get install -y --no-install-recommends \
+                build-essential \
+                ca-certificates \
+                cmake \
+                curl \
+                libssl-dev \
+                "postgresql-server-dev-$${PG_MAJOR}" \
+            && curl -fsSL \
+                "https://github.com/pgvector/pgvector/archive/refs/tags/v$${PGVECTOR_VERSION}.tar.gz" \
+                -o /tmp/pgvector.tar.gz \
+            && mkdir -p /tmp/pgvector /opt/extensions \
+            && tar -xzf /tmp/pgvector.tar.gz -C /tmp/pgvector --strip-components=1 \
+            && make -C /tmp/pgvector -j"$$(nproc)" OPTFLAGS="" \
+            && make -C /tmp/pgvector DESTDIR=/opt/extensions install \
+            && curl -fsSL \
+                "https://github.com/timescale/timescaledb/archive/refs/tags/$${TIMESCALEDB_VERSION}.tar.gz" \
+                -o /tmp/timescaledb.tar.gz \
+            && mkdir -p /tmp/timescaledb \
+            && tar -xzf /tmp/timescaledb.tar.gz -C /tmp/timescaledb --strip-components=1 \
+            && cd /tmp/timescaledb \
+            && ./bootstrap \
+                -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+                -DREGRESS_CHECKS=OFF \
+                -DTAP_CHECKS=OFF \
+                -DGENERATE_DOWNGRADE_SCRIPT=ON \
+                -DWARNINGS_AS_ERRORS=OFF \
+                -DAPACHE_ONLY=1 \
+            && make -C build -j"$$(nproc)" \
+            && make -C build DESTDIR=/opt/extensions install
+
+        FROM postgres:$${POSTGRES_VERSION}-bookworm
+
+        ARG POSTGRES_VERSION=18.4
+        ARG PGVECTOR_VERSION=0.8.5
+        ARG TIMESCALEDB_VERSION=2.28.3
+
+        COPY --from=extension-builder /opt/extensions/usr/ /usr/
+
+        RUN set -eux; \
+            pg_config --version | grep -Fq "PostgreSQL $${POSTGRES_VERSION}"; \
+            grep -Fq "default_version = '$${PGVECTOR_VERSION}'" \
+                "$$(pg_config --sharedir)/extension/vector.control"; \
+            grep -Fq "default_version = '$${TIMESCALEDB_VERSION}'" \
+                "$$(pg_config --sharedir)/extension/timescaledb.control"; \
+            ! grep -R -Eiq 'CREATE[[:space:]]+EXTENSION.*(timescaledb|vector)' \
+                /docker-entrypoint-initdb.d
+
+        LABEL org.opencontainers.image.title="FlowVerse PostgreSQL extensions" \
+              org.opencontainers.image.version="18.4-pgvector0.8.5-timescaledb2.28.3-oss"
+      args:
+        POSTGRES_VERSION: "18.4"
+        PGVECTOR_VERSION: "0.8.5"
+        TIMESCALEDB_VERSION: "2.28.3"
+    image: flowverse/postgres:18.4-pgvector0.8.5-timescaledb2.28.3-oss
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "${FLOWVERSE_POSTGRES_USER:-flowverse}"
+      POSTGRES_DB: "${FLOWVERSE_POSTGRES_DB:-flowverse}"
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+      PGDATA: /var/lib/postgresql/data/pgdata
+      NO_TS_TUNE: "true"
+      TIMESCALEDB_TELEMETRY: "off"
+      TZ: "${FLOWVERSE_TIMEZONE:-Asia/Shanghai}"
+    command:
+      - postgres
+      - -c
+      - "max_connections=${FLOWVERSE_POSTGRES_MAX_CONNECTIONS:-50}"
+      - -c
+      - "shared_buffers=${FLOWVERSE_POSTGRES_SHARED_BUFFERS:-512MB}"
+      - -c
+      - password_encryption=scram-sha-256
+      - -c
+      - shared_preload_libraries=timescaledb
+      - -c
+      - timescaledb.telemetry_level=off
+      - -c
+      - "max_worker_processes=${FLOWVERSE_POSTGRES_MAX_WORKER_PROCESSES:-6}"
+      - -c
+      - "timescaledb.max_background_workers=${FLOWVERSE_TIMESCALEDB_MAX_BACKGROUND_WORKERS:-2}"
+    secrets:
+      - postgres_password
+    ports:
+      - "${FLOWVERSE_BIND_ADDRESS:-127.0.0.1}:${FLOWVERSE_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - middleware
+    shm_size: "${FLOWVERSE_POSTGRES_SHM_SIZE:-1gb}"
+    mem_limit: "${FLOWVERSE_POSTGRES_MEMORY_LIMIT:-2g}"
+    mem_reservation: "${FLOWVERSE_POSTGRES_MEMORY_RESERVATION:-1g}"
+    cpus: "${FLOWVERSE_POSTGRES_CPU_LIMIT:-2.0}"
+    pids_limit: 256
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    logging: *default-logging
+
+  redis:
+    image: redis:8.8.0-trixie
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        redis_password="$$(cat /run/secrets/redis_password)"
+        umask 077
+        printf '%s\n' \
+          'appendonly yes' \
+          'appendfsync everysec' \
+          'protected-mode yes' \
+          "requirepass $${redis_password}" \
+          'maxmemory ${FLOWVERSE_REDIS_MAXMEMORY:-512mb}' \
+          'maxmemory-policy noeviction' \
+          > /tmp/flowverse-redis.conf
+        chown redis:redis /tmp/flowverse-redis.conf
+        unset redis_password
+        exec /usr/local/bin/docker-entrypoint.sh \
+          redis-server /tmp/flowverse-redis.conf
+    secrets:
+      - redis_password
+    ports:
+      - "${FLOWVERSE_BIND_ADDRESS:-127.0.0.1}:${FLOWVERSE_REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - middleware
+    mem_limit: "${FLOWVERSE_REDIS_MEMORY_LIMIT:-1g}"
+    mem_reservation: "${FLOWVERSE_REDIS_MEMORY_RESERVATION:-512m}"
+    cpus: "${FLOWVERSE_REDIS_CPU_LIMIT:-1.0}"
+    pids_limit: 256
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$(cat /run/secrets/redis_password)\" redis-cli ping | grep -qx PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    logging: *default-logging
+
+  minio:
+    build:
+      context: .
+      dockerfile_inline: |
+        # syntax=docker/dockerfile:1.7
+        FROM golang:1.24.8-alpine3.22 AS builder
+
+        RUN apk add --no-cache ca-certificates
+
+        ARG MINIO_VERSION=RELEASE.2025-10-15T17-29-55Z
+        ARG MINIO_MODULE_VERSION=v0.0.0-20251015172955-9e49d5e7a648
+        ARG MINIO_BUILD_VERSION=2025-10-15T17:29:55Z
+        ARG MINIO_COMMIT_ID=9e49d5e7a648
+        ARG GOPROXY=https://mirrors.aliyun.com/goproxy/
+        ARG GOSUMDB=sum.golang.org
+
+        RUN set -eux; \
+            mkdir -p /out; \
+            module_dir="$$( \
+                GOPROXY="$${GOPROXY}" GOSUMDB="$${GOSUMDB}" \
+                go mod download -json "github.com/minio/minio@$${MINIO_MODULE_VERSION}" \
+                | sed -n 's/^[[:space:]]*"Dir": "\(.*\)",$$/\1/p' \
+            )"; \
+            test -n "$${module_dir}"; \
+            cd "$${module_dir}"; \
+            GOPROXY="$${GOPROXY}" GOSUMDB="$${GOSUMDB}" CGO_ENABLED=0 \
+                go build -tags kqueue -trimpath \
+                -ldflags="-s -w -X github.com/minio/minio/cmd.Version=$${MINIO_BUILD_VERSION} -X github.com/minio/minio/cmd.CopyrightYear=2025 -X github.com/minio/minio/cmd.ReleaseTag=$${MINIO_VERSION} -X github.com/minio/minio/cmd.CommitID=$${MINIO_COMMIT_ID} -X github.com/minio/minio/cmd.ShortCommitID=$${MINIO_COMMIT_ID} -X github.com/minio/minio/cmd.GOPATH=/go -X github.com/minio/minio/cmd.GOROOT=/usr/local/go" \
+                -o /out/minio .
+
+        FROM alpine:3.22.2
+
+        RUN apk add --no-cache ca-certificates curl tzdata \
+            && addgroup -S -g 10001 minio \
+            && adduser -S -D -H -u 10001 -G minio minio \
+            && mkdir -p /data \
+            && chown minio:minio /data
+
+        COPY --from=builder /out/minio /usr/local/bin/minio
+
+        USER 10001:10001
+        VOLUME ["/data"]
+        EXPOSE 9000 9001
+
+        LABEL org.opencontainers.image.title="FlowVerse MinIO" \
+              org.opencontainers.image.version="RELEASE.2025-10-15T17-29-55Z"
+      args:
+        MINIO_VERSION: RELEASE.2025-10-15T17-29-55Z
+        MINIO_MODULE_VERSION: v0.0.0-20251015172955-9e49d5e7a648
+        MINIO_BUILD_VERSION: "2025-10-15T17:29:55Z"
+        MINIO_COMMIT_ID: 9e49d5e7a648
+        GOPROXY: "${FLOWVERSE_GO_PROXY:-https://mirrors.aliyun.com/goproxy/}"
+        GOSUMDB: "${FLOWVERSE_GO_SUMDB:-sum.golang.org}"
+    image: flowverse/minio:RELEASE.2025-10-15T17-29-55Z
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        export MINIO_ROOT_USER="$$(cat /run/secrets/minio_root_user)"
+        export MINIO_ROOT_PASSWORD="$$(cat /run/secrets/minio_root_password)"
+        exec /usr/local/bin/minio server /data --console-address ":9001"
+    environment:
+      TZ: "${FLOWVERSE_TIMEZONE:-Asia/Shanghai}"
+    secrets:
+      - minio_root_user
+      - minio_root_password
+    ports:
+      - "${FLOWVERSE_BIND_ADDRESS:-127.0.0.1}:${FLOWVERSE_MINIO_API_PORT:-9000}:9000"
+      - "${FLOWVERSE_BIND_ADDRESS:-127.0.0.1}:${FLOWVERSE_MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - middleware
+    mem_limit: "${FLOWVERSE_MINIO_MEMORY_LIMIT:-1g}"
+    mem_reservation: "${FLOWVERSE_MINIO_MEMORY_RESERVATION:-512m}"
+    cpus: "${FLOWVERSE_MINIO_CPU_LIMIT:-1.0}"
+    pids_limit: 256
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    logging: *default-logging
+
+secrets:
+  postgres_password:
+    file: "${FLOWVERSE_POSTGRES_PASSWORD_FILE:-./secrets/postgres_password}"
+  redis_password:
+    file: "${FLOWVERSE_REDIS_PASSWORD_FILE:-./secrets/redis_password}"
+  minio_root_user:
+    file: "${FLOWVERSE_MINIO_ROOT_USER_FILE:-./secrets/minio_root_user}"
+  minio_root_password:
+    file: "${FLOWVERSE_MINIO_ROOT_PASSWORD_FILE:-./secrets/minio_root_password}"
+
+volumes:
+  postgres_data:
+    name: flowverse_postgres_data
+    labels:
+      com.flowverse.capacity-plan: "300GiB"
+  redis_data:
+    name: flowverse_redis_data
+    labels:
+      com.flowverse.capacity-plan: "20GiB"
+  minio_data:
+    name: flowverse_minio_data
+    labels:
+      com.flowverse.capacity-plan: "500GiB"
+
+networks:
+  middleware:
+    name: flowverse_middleware
+    driver: bridge
