@@ -3,7 +3,7 @@
 ## Status
 
 - Product/design scope `FV1-PRODUCT-DESIGN` is approved from PRD v1.1 and the FlowVerse Phase 1 UIUX MVP package.
-- Architecture and non-business bootstrap scopes are approved through `FV1-LOCAL-TEST-DEPLOY`. Web/API/Worker source, locks, diagnostic contracts, quality gate and native local-test deployment wrapper are implemented; real PostgreSQL remains an external verification gate, while CI/CD, test-server and production deployment targets are Unknown.
+- Architecture and non-business bootstrap scopes are approved through `FV1-SERVER-DATA-EXTENSIONS`. Web/API/Worker source, locks, diagnostic contracts, quality gate, native local-test entry and server PostgreSQL/Redis/MinIO configuration are implemented; PostgreSQL packages pgvector and TimescaleDB OSS without creating schemas. One target-server middleware image-build and three-container health smoke passed after the recorded compatibility corrections, and the PostgreSQL-ready native application chain passed locally on 2026-07-30. Extension SQL availability, sustained operation and recovery remain external gates; CI/CD and application production deployment are Unknown.
 - No business implementation may begin until the relevant architecture targets, technology versions, commands, file scope, acceptance mapping, and due reliability/performance gates satisfy `../engineering/AI_CODING_WORKFLOW.md`.
 - V1 is the first implemented release. Direction-document provenance creates no migration or legacy compatibility work.
 
@@ -76,6 +76,70 @@ Deliver a Proposed, reviewable architecture without business code:
 - Performance: N/A because the wrapper adds no application runtime path and starts the same native processes.
 - Recovery: remove the wrapper and reverse only ADR-0006/current registry edits if a replacement deployment decision is explicitly approved; preserve application data and user work.
 
+### Approved local-to-server middleware development access — 2026-07-24
+
+- Outcome: allow the native Windows development environment to use the already deployed private PostgreSQL, Redis and MinIO endpoints through one foreground OpenSSH local-port-forward command, without exposing middleware ports publicly.
+- Acceptance: require an explicit SSH host/user; bind local forwards only to `127.0.0.1`; default to non-conflicting local ports 15432/16379/19000/19001; permit port and identity-file overrides; reject duplicate ports; keep SSH host-key verification; use a 10-second connection timeout, `ExitOnForwardFailure` and bounded keepalive; propagate SSH failure; store/print no middleware credential; support a no-network `-ValidateOnly` check.
+- Owner and contracts: platform/developer-experience owns the tunnel helper. The local API/Worker continue consuming only `FLOWVERSE_DATABASE_URL`; Redis/MinIO application contracts remain N/A. Server Compose, data owners and service topology are unchanged.
+- Affected files: `deploy/local/start-middleware-tunnel.ps1`, local/root runbooks, the root non-secret environment example, and active intake/architecture/stack/reliability/governance/task evidence.
+- Excluded: `services/**`, server Compose, public binds, firewall/security-group changes, SSH accounts/keys, password rotation/storage, Redis/MinIO business integration, TLS, CI/CD and application production deployment.
+- Reliability/security: the tunnel is foreground and reversible; closing it removes every forward; no automatic retry hides failure; local and server middleware listeners remain loopback-only; live SSH authentication and reachability are operator-owned external prerequisites.
+- Verification: parse the PowerShell script, run the registered no-network validation command, assert duplicate ports fail, scan for public-bind/credential drift, run architecture checks/self-tests and `git diff --check`. A real SSH session is intentionally Unverified until the operator supplies and authorizes a server endpoint.
+- Performance: product loading/rendering/bundle/AI performance is N/A because the helper changes no application code. Tunnel latency and throughput are Unverified and depend on the developer network and SSH server.
+- Recovery: press `Ctrl+C` to remove forwards; delete the helper and documentation/evidence rows to roll back. No server restart, migration or data-volume action is required.
+
+### Approved server-middleware deployment slice — 2026-07-22
+
+- Outcome: add one server-only Docker Compose project for PostgreSQL 18.4 with pgvector 0.8.5, Redis 8.8.0 and source-built MinIO `RELEASE.2025-10-15T17-29-55Z`; preserve the Docker-free native local application path.
+- Acceptance: exactly three services; no committed secret values; loopback port defaults; file-secret mounts; named persistent volumes; health/restart/process/log/CPU/memory controls; explicit host disk-capacity plan; non-destructive stop/recovery instructions; pinned version evidence and ADR.
+- Owner and contracts: platform/operations owns provisioning. PostgreSQL is authoritative relational storage, Redis is non-authoritative capability, and MinIO is object-storage capability. No application consumer, API, schema, extension, bucket or user contract is created.
+- Affected files: `deploy/server/middleware/**`, ADR-0007, root README and affected intake/architecture/stack/reliability/performance/governance/task registries.
+- Excluded: `services/**`, local launcher behavior, Elasticsearch/OpenSearch, TimescaleDB, business schema/API/auth, application credentials/connections, CI/CD, application production deployment, TLS, backup/restore, monitoring, high availability and destructive data operations.
+- Verification: statically review Compose inline image recipes and one-command bootstrap, scan for secret leakage, run script syntax, architecture and diff checks; on the target server run registered Compose config/build/start/health commands. The corrected image-build and three-service-health smoke passed once on the target server; exact updated one-command rerun and local Docker execution remain Unverified.
+- Recovery: `docker compose down` stops only this project and preserves named volumes. Never use `down -v` as routine rollback; any data migration/removal requires a separately approved plan and superseding ADR.
+
+### Approved PostgreSQL extension bundle — 2026-07-22
+
+- Outcome: retain the three-container middleware topology while packaging pgvector 0.8.5 and TimescaleDB 2.28.3 OSS in PostgreSQL 18.4 for future simple RAG and stock time-series work.
+- Acceptance: exact extension versions compiled in an isolated stage over the existing Debian PostgreSQL runtime; TimescaleDB shared preload with bounded workers and telemetry disabled; no automatic initialization script, `CREATE EXTENSION`, table, hypertable, vector index or policy; extension-availability query documented; existing secrets, ports, volumes and service count unchanged.
+- Owner and contracts: platform owns extension binaries and PostgreSQL process configuration. Future Alembic migrations own activation and all vector/time-series schemas. PostgreSQL remains the single relational authority; no new dependency edge or data owner is created.
+- Affected files: PostgreSQL middleware inline Compose recipe/non-secret settings/runbook/bootstrap, ADR-0008 and affected intake/architecture/stack/reliability/performance/governance/task/root documentation.
+- Excluded: `services/**`, migration files, embedding provider/model/dimension, RAG ingestion/query APIs, market-data tables/hypertables, retention/compression policies, pgvectorscale, Elasticsearch/OpenSearch, a separate TimescaleDB service and any data-volume mutation.
+- Verification: statically confirm exact versions, three services, preserved PostgreSQL runtime base, preload/worker bounds, absence of auto-install, no secrets and documentation consistency; run architecture checks. The target-server image built and PostgreSQL reached `healthy`; the `pg_available_extensions` query for timescaledb 2.28.3 and vector 0.8.5 remains required and Unverified. Docker execution remains unavailable locally.
+- Recovery: before schema activation, rebuild the prior PostgreSQL image while preserving the volume. After either extension is created, downgrade/removal requires a separately approved migration or restore plan; never delete the volume as rollback.
+
+### Approved lightweight middleware capacity adjustment — 2026-07-23
+
+- Outcome: use one smaller, internally consistent capacity profile for architecture deployment testing while retaining the existing three services, versions, secrets and data volumes.
+- Acceptance: Compose fallbacks and `.env.example` match; PostgreSQL uses 2 CPU/1 GiB reservation/2 GiB limit with 512 MiB shared buffers, 50 connections, six workers and two TimescaleDB workers; Redis uses 1 CPU/512 MiB reservation/1 GiB limit with 512 MiB `maxmemory`; MinIO uses 1 CPU/512 MiB reservation/1 GiB limit; no reservation exceeds a limit and no internal memory target exceeds its container limit.
+- Owner and contracts: platform/operations owns the resource defaults. No service, API, data-owner, dependency, secret, schema, port, volume or disk-plan contract changes.
+- Affected files: middleware Compose/environment/runbook, ADR-0009 and active architecture/performance/reliability/governance/intake/task evidence.
+- Excluded: product/application code, extension activation, workload claims, production sizing, monitoring implementation, disk mutation and password rotation.
+- Verification: statically compare both configuration sources, assert memory/worker relationships and the unchanged three-service/secret/volume contract, run Bash syntax, architecture tests and diff checks; one target-server build/start/health smoke passed, while local Docker execution and representative load measurement remain Unverified.
+- Performance and reliability: the profile is for light data and architecture verification only. Concurrent RAG/stock ingestion, indexing, backup and compaction require observation and likely larger values; BuildKit compilation needs separate transient host headroom.
+- Recovery: raise values in the untracked server `.env` and recreate affected containers without deleting named volumes; never use `down -v` for capacity rollback.
+
+### Approved MinIO Go Module proxy adjustment — 2026-07-23
+
+- Outcome: make the MinIO builder use the Aliyun Go Module mirror that the user verified from the target server, while keeping the proxy configurable, deterministic and checksum verified without depending on GitHub reachability.
+- Acceptance: the inline builder fixes the canonical module version `v0.0.0-20251015172955-9e49d5e7a648`, downloads it with `go mod download`, builds from the returned local directory with explicit release metadata, declares and consumes `GOPROXY`/`GOSUMDB`, and has no VCS/`direct` fallback; Compose arguments and `.env.example` match; `GOSUMDB` is not disabled; MinIO tag, runtime image, secrets and volumes remain unchanged.
+- Owner and contracts: platform/operations owns build transport. No runtime service, application dependency, API, data owner or schema changes.
+- Affected files: middleware Compose/environment/runbook and active stack/governance/task evidence. ADR and technical debt are N/A because this is a configurable build-network correction within the existing image recipe.
+- Verification: assert the exact canonical module and release metadata, escaped inline-Dockerfile variables, module-directory extraction, proxy without `direct`, enabled checksum verification and unchanged service/secret/volume contracts; run Bash syntax, architecture tests and diff checks. The target server first reproduced official-proxy timeout, missing-Git, direct-GitHub and deprecated-version metadata failures, then successfully built the deterministic module-directory recipe and started a healthy MinIO container.
+- Recovery: set another trusted module-only `FLOWVERSE_GO_PROXY` in the untracked `.env` or revert the builder recipe and rebuild the image; no runtime data-volume rollback is involved.
+
+### Approved middleware deployment compatibility corrections — 2026-07-23
+
+- Outcome: synchronize the repository with the exact corrections that allowed the approved middleware topology to build and reach three healthy containers on the target server.
+- Acceptance: PostgreSQL image verification accepts the official Debian package suffix while still requiring PostgreSQL 18.4; Redis keeps its password file root-only, reads it in a bounded root wrapper, protects the generated configuration and delegates to the official entrypoint so the server process runs as `redis`; MinIO uses the deterministic module-directory build above; no credential value is committed or printed.
+- Owner and contracts: platform/operations owns the Compose startup/build boundary. Service count, versions, ports, volumes, capacity, data authority, application dependencies and extension/schema ownership remain unchanged; no ADR is triggered because these are compatibility and least-privilege corrections inside ADR-0007/0008/0009.
+- Affected files: `deploy/server/middleware/compose.yml`, `.env.example`, runbook/secret instructions, root README, and active architecture/stack/reliability/performance/governance/task evidence.
+- Excluded: `services/**`, local runtime, password values or rotation, extension activation, business schemas/APIs, public exposure, CI/CD, TLS, backup/restore, monitoring, HA and destructive volume operations.
+- Reliability/security: root-only secrets remain mode 600; Redis root exists only in the startup wrapper and official entrypoint before process downgrade; health checks remain authenticated and bounded; named volumes remain the recovery boundary and the deployment directory must be retained.
+- Verification: statically assert the three compatibility contracts, exact versions, three services/four secrets/three volumes, Bash syntax, architecture checks/self-tests, secret absence and diff hygiene. Target-server image build and three-current-health smoke Passed once; updated one-command rerun, extension SQL query, sustained health, workload capacity and recovery remain Unverified.
+- Performance: product interaction and bundle performance are N/A; the source-build path changes first-build behavior, but no controlled before/after build duration or resource measurement exists, so performance remains Unverified.
+- Recovery: revert only these source/config/documentation corrections and rebuild/recreate affected containers without `-v`; never delete named volumes or the deployment directory as rollback.
+
 - Confirm exact runtime/framework/version ranges, package manager, bootstrap command, allowed files, and rollback plan.
 - Create only approved manifests, lockfiles, configuration, quality/architecture gates, test harnesses, and measurement entry points.
 - Import/map UIUX `DesignSpec/tokens.json` into one canonical token mechanism; do not add product behavior.
@@ -127,6 +191,17 @@ Deliver a Proposed, reviewable architecture without business code:
 - Rehearse failure, timeout, duplicate, partial success, restart, restore, stale input, saturation, provider-policy change, and deletion paths.
 - Complete two consecutive valid real Cycles and record serious trust incidents separately from functional completion.
 - Report mechanism result and individual-value result without claiming causality or market validation.
+
+### Approved local middleware authentication diagnostic — 2026-07-29
+
+- Outcome: configure the ignored local environment without echoing secrets and prove authenticated access to the server PostgreSQL, Redis and MinIO through the existing loopback SSH forwards.
+- Acceptance: PostgreSQL executes `SELECT 1`; Redis accepts `AUTH` and returns `PONG`; MinIO accepts a signed read-only `ListBuckets`; every check is bounded, has no retry, prints no secret or response body, and the command exits non-zero unless all three are ready.
+- Owner/contracts: the API health package owns the diagnostic; the platform wrapper only delegates. No business schema, Redis key/queue, MinIO bucket/object, application root account or public HTTP contract is added.
+- Affected files: API diagnostic settings/source/tests, local PowerShell configuration/launcher files, `.env.example`, runbooks and active architecture/stack/reliability/intake/decision evidence.
+- Excluded: server Compose, public ports, firewall/security groups, business code, Web UI, Worker behavior, migrations/extensions, TLS, production access and new dependencies.
+- Performance/reliability/security: three checks run concurrently with a three-second default and ten-second maximum, zero retry and truthful classified failure; local plaintext credentials remain in ignored `.env` and are never logged. Product interaction and bundle performance are N/A.
+- Verification: API Ruff/Pyright/pytest, PowerShell parsing, architecture checks/self-tests, configuration-failure execution, live credentialed execution, local service-chain smoke and diff/secret review.
+- Recovery: delete the ignored root `.env` and revert the diagnostic/settings/launcher changes; server containers, volumes and data remain untouched.
 
 ## File-Level Planning Rule
 

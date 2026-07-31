@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet("preflight", "api", "worker", "worker-check", "web", "all")]
+    [ValidateSet("preflight", "api", "worker", "worker-check", "middleware-check", "web", "all")]
     [string]$Service = "preflight"
 )
 
@@ -13,6 +13,7 @@ $ApiRoot = Join-Path $RepositoryRoot "services\api"
 $WorkerRoot = Join-Path $RepositoryRoot "services\worker"
 $WebRoot = Join-Path $RepositoryRoot "services\web"
 $TechStackPath = Join-Path $RepositoryRoot "docs\engineering\TECH_STACK.md"
+$UvicornLauncher = Join-Path $PSScriptRoot "run_uvicorn.py"
 
 function Import-FlowVerseEnvironment {
     $environmentPath = Join-Path $RepositoryRoot ".env"
@@ -94,8 +95,8 @@ function Require-WebRuntime {
 }
 
 function Show-Preflight {
-    $apiExecutable = Join-Path $ApiRoot ".venv\Scripts\uvicorn.exe"
-    $workerExecutable = Join-Path $WorkerRoot ".venv\Scripts\uvicorn.exe"
+    $apiExecutable = Join-Path $ApiRoot ".venv\Scripts\python.exe"
+    $workerExecutable = Join-Path $WorkerRoot ".venv\Scripts\python.exe"
     $webLock = Join-Path $WebRoot "pnpm-lock.yaml"
     $webSource = Join-Path $WebRoot "src"
     $environmentPath = Join-Path $RepositoryRoot ".env"
@@ -106,6 +107,7 @@ function Show-Preflight {
     Write-Output "  .env:           $(Get-StatusLabel $environmentPath)"
     Write-Output "  API runtime:    $(Get-StatusLabel $apiExecutable)"
     Write-Output "  Worker runtime: $(Get-StatusLabel $workerExecutable)"
+    Write-Output "  ASGI launcher:  $(Get-StatusLabel $UvicornLauncher)"
     Write-Output "  Web lockfile:   $(Get-StatusLabel $webLock)"
     Write-Output "  Web source:     $(Get-DirectoryStatusLabel $webSource)"
     Write-Output "  Node runtime:   $nodeVersion (required: v24.17.0)"
@@ -113,13 +115,14 @@ function Show-Preflight {
 }
 
 function Start-ApiForeground {
-    $apiExecutable = Join-Path $ApiRoot ".venv\Scripts\uvicorn.exe"
+    $apiExecutable = Join-Path $ApiRoot ".venv\Scripts\python.exe"
     Require-File $apiExecutable "Run: uv sync --project services/api --python 3.13.14"
+    Require-File $UvicornLauncher "Restore the FlowVerse local Uvicorn launcher."
     $hostName = Get-EnvironmentValue "FLOWVERSE_API_HOST" "127.0.0.1"
     $port = Get-EnvironmentValue "FLOWVERSE_API_PORT" "8000"
     Push-Location $ApiRoot
     try {
-        & $apiExecutable "flowverse_api.api.main:app" "--app-dir" "src" "--host" $hostName "--port" $port
+        & $apiExecutable $UvicornLauncher "flowverse_api.api.main:app" "--app-dir" "src" "--host" $hostName "--port" $port
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     finally {
@@ -128,13 +131,27 @@ function Start-ApiForeground {
 }
 
 function Start-WorkerForeground {
-    $workerExecutable = Join-Path $WorkerRoot ".venv\Scripts\uvicorn.exe"
+    $workerExecutable = Join-Path $WorkerRoot ".venv\Scripts\python.exe"
     Require-File $workerExecutable "Run: uv sync --project services/worker --python 3.13.14"
+    Require-File $UvicornLauncher "Restore the FlowVerse local Uvicorn launcher."
     $hostName = Get-EnvironmentValue "FLOWVERSE_WORKER_HOST" "127.0.0.1"
     $port = Get-EnvironmentValue "FLOWVERSE_WORKER_PORT" "8001"
     Push-Location $WorkerRoot
     try {
-        & $workerExecutable "flowverse_worker.api.main:app" "--app-dir" "src" "--host" $hostName "--port" $port
+        & $workerExecutable $UvicornLauncher "flowverse_worker.api.main:app" "--app-dir" "src" "--host" $hostName "--port" $port
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Start-MiddlewareCheck {
+    $apiExecutable = Join-Path $ApiRoot ".venv\Scripts\python.exe"
+    Require-File $apiExecutable "Run: uv sync --project services/api --python 3.13.14"
+    Push-Location (Join-Path $ApiRoot "src")
+    try {
+        & $apiExecutable "-m" "flowverse_api.health.middleware_check"
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     finally {
@@ -146,7 +163,7 @@ function Start-WebForeground {
     $corepack = Require-WebRuntime
     $hostName = Get-EnvironmentValue "FLOWVERSE_WEB_HOST" "127.0.0.1"
     $port = Get-EnvironmentValue "FLOWVERSE_WEB_PORT" "5173"
-    & $corepack "pnpm@11.10.0" "--dir" $WebRoot "run" "dev" "--" "--host" $hostName "--port" $port
+    & $corepack "pnpm@11.10.0" "--dir" $WebRoot "run" "dev" "--host" $hostName "--port" $port
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
@@ -225,10 +242,11 @@ function Wait-ServiceHealth {
 }
 
 function Start-AllServices {
-    $apiExecutable = Join-Path $ApiRoot ".venv\Scripts\uvicorn.exe"
-    $workerExecutable = Join-Path $WorkerRoot ".venv\Scripts\uvicorn.exe"
+    $apiExecutable = Join-Path $ApiRoot ".venv\Scripts\python.exe"
+    $workerExecutable = Join-Path $WorkerRoot ".venv\Scripts\python.exe"
     Require-File $apiExecutable "Run: uv sync --project services/api --python 3.13.14"
     Require-File $workerExecutable "Run: uv sync --project services/worker --python 3.13.14"
+    Require-File $UvicornLauncher "Restore the FlowVerse local Uvicorn launcher."
     $null = Require-WebRuntime
 
     $apiHost = Get-EnvironmentValue "FLOWVERSE_API_HOST" "127.0.0.1"
@@ -242,14 +260,14 @@ function Start-AllServices {
     try {
         $worker = Start-HiddenService `
             "worker" $workerExecutable $WorkerRoot `
-            @("flowverse_worker.api.main:app", "--app-dir", "src", "--host", $workerHost, "--port", $workerPort) `
+            @($UvicornLauncher, "flowverse_worker.api.main:app", "--app-dir", "src", "--host", $workerHost, "--port", $workerPort) `
             $logRoot
         $processes.Add($worker)
         Wait-ServiceHealth "Worker" "http://${workerHost}:${workerPort}/health/live" $worker $logRoot
 
         $api = Start-HiddenService `
             "api" $apiExecutable $ApiRoot `
-            @("flowverse_api.api.main:app", "--app-dir", "src", "--host", $apiHost, "--port", $apiPort) `
+            @($UvicornLauncher, "flowverse_api.api.main:app", "--app-dir", "src", "--host", $apiHost, "--port", $apiPort) `
             $logRoot
         $processes.Add($api)
         Wait-ServiceHealth "API" "http://${apiHost}:${apiPort}/health/live" $api $logRoot
@@ -289,6 +307,7 @@ switch ($Service) {
             Pop-Location
         }
     }
+    "middleware-check" { Start-MiddlewareCheck }
     "web" { Start-WebForeground }
     "all" { Start-AllServices }
 }

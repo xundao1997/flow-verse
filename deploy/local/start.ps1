@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet("preflight", "api", "worker", "worker-check", "web", "all")]
+    [ValidateSet("preflight", "api", "worker", "worker-check", "middleware-check", "web", "all")]
     [string]$Mode = "all"
 )
 
