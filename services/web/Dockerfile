@@ -1,4 +1,4 @@
-FROM crpi-gtjoy2et81jlceyo.cn-beijing.personal.cr.aliyuncs.com/zfq-common/node:24.17.0-bookworm-slim AS build
+FROM crpi-gtjoy2et81jlceyo-vpc.cn-beijing.personal.cr.aliyuncs.com/zfq-common/node:24.17.0-bookworm-slim AS build
 
 ENV COREPACK_HOME=/corepack
 
@@ -15,7 +15,7 @@ RUN pnpm install --frozen-lockfile
 COPY services/web/ ./
 RUN pnpm run build
 
-FROM crpi-gtjoy2et81jlceyo.cn-beijing.personal.cr.aliyuncs.com/zfq-common/nginx:1.30.3-alpine
+FROM crpi-gtjoy2et81jlceyo-vpc.cn-beijing.personal.cr.aliyuncs.com/zfq-common/nginx:1.30.3-alpine
 
 ENV FLOWVERSE_API_UPSTREAM=flowverse-api:8000
 
