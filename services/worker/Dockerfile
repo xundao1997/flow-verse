@@ -1,5 +1,5 @@
-FROM ghcr.nju.edu.cn/astral-sh/uv:0.11.28 AS uv
-FROM docker.nju.edu.cn/python:3.13.14-slim-bookworm
+FROM crpi-gtjoy2et81jlceyo-vpc.cn-beijing.personal.cr.aliyuncs.com/zfq-common/uv:0.11.28 AS uv
+FROM crpi-gtjoy2et81jlceyo-vpc.cn-beijing.personal.cr.aliyuncs.com/zfq-common/python:3.13.14-slim-bookworm
 
 COPY --from=uv /uv /uvx /usr/local/bin/
 
