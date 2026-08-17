@@ -1,22 +1,24 @@
 # FlowVerse Agent Instructions
 
 ## Version Identity
-- FlowVerse V1 is the first implemented product release. References in PRD v1.1 to earlier direction drafts are provenance only, not evidence of a predecessor application, runtime baseline, migration, or compatibility obligation.
-- The approved product/design baseline is PRD v1.1 plus the FlowVerse Phase 1 UIUX MVP package identified in docs/intake/V1_PACKAGE_INTAKE.md.
+- FlowVerse V1.0 is the first implemented product release; V1.1 and V1.2 are cumulative additions, and V1.2 closes the complete novel creation-to-operation-loop contract. References in PRD v1.1 to earlier direction drafts are provenance only, not evidence of a predecessor application, runtime baseline, migration, or compatibility obligation.
+- The immutable product/design evidence baseline is PRD v1.1 plus the FlowVerse Phase 1 UIUX MVP package identified in docs/intake/V1_PACKAGE_INTAKE.md. The V1.0/V1.1/V1.2 repository amendment and synchronized documents remain IN_REVIEW until the package intake gate records final approval; never rewrite the external originals.
 - Read package state and approved scope only from docs/intake/V1_PACKAGE_INTAKE.md; do not copy dynamic status or infer missing facts.
 
 ## Sources of Truth
-- Product: docs/product/PRODUCT_POSITIONING.md and docs/product/V1_PRODUCT_BRIEF.md
+- Product: docs/product/PRODUCT_POSITIONING.md, docs/product/V1_PRODUCT_BRIEF.md, and the status-gated docs/product/V1_ROADMAP_AND_DECISION_PRD_AMENDMENT.md
 - Evidence and package gate: docs/governance/EVIDENCE_POLICY.md and docs/intake/V1_PACKAGE_INTAKE.md
 - Stack, architecture, reliability, coding, performance, debt, and change control: docs/engineering/
 - UIUX and acceptance: docs/uiux/
 - Delivery plan: docs/tasks/V1_IMPLEMENTATION_PLAN.md
+- System decision Prompt contracts: docs/ai/SYSTEM_DECISION_PROMPTS.md; these are decision-support families, not novel-writing Prompt text.
 - Resolve conflicts by docs/governance/EVIDENCE_POLICY.md; stop the affected work instead of choosing silently.
 
 ## Key Conventions
 - FlowVerse is a multi-model, multi-Agent novel creation and real-operation loop workbench; AI output is always a candidate and humans confirm every formal fact.
 - The work home combines one shared Bot capability, continue work, pending work, and the complete task list; Bot failure must not block deterministic entry points.
-- One novel task progresses through Stage 0, initial creation, manual external release, feedback, formal analysis, human decision, and successive Cycle N iterations.
+- One novel task cumulatively progresses through V1.0 CreationBaseline and initial creation, V1.1 OperationValidationBaseline/manual external release/feedback/formal analysis/human decision, and V1.2 successive Cycle N iterations. Continue observing is a stage action, not a formal HumanDecision.
+- Server-side deterministic orchestration owns permissions, revisions, state transitions, hard gates, and the authoritative decision state, incorporating required human review/confirmation. Semantic model output is only an evidence-linked candidate; it must be shown for explicit human review and revalidated before any formal command.
 - Agent execution topology is read-only. Do not expose free Agent creation, Prompt editing, arbitrary wiring, custom DAGs, or a general Workflow Builder.
 - User and administrator permissions are separate; administrators configure, monitor, and audit but never impersonate users or confirm user business facts.
 - Desktop Web is primary. At 390 x 844, business content is read-only and complex creation, execution, confirmation, release, decision, and admin actions remain disabled.

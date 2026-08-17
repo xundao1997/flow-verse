@@ -3,9 +3,92 @@
 ## Status
 
 - Product/design scope `FV1-PRODUCT-DESIGN` is approved from PRD v1.1 and the FlowVerse Phase 1 UIUX MVP package.
+- The user's 2026-08-12 product-roadmap direction names cumulative V1.0 novel creation, V1.1 AI content analysis/operations review, and V1.2 feedback-driven AI creation/closed-loop effect releases. The exact partition in this plan is `IN_REVIEW` under `FV1-ROADMAP-REVIEW`; the external PRD remains unchanged and authoritative for retained behavior and the final V1.2 result until the whole synchronized change set receives final approval.
 - Architecture and non-business bootstrap scopes are approved through `FV1-SERVER-DATA-EXTENSIONS`. Web/API/Worker source, locks, diagnostic contracts, quality gate, native local-test entry and server PostgreSQL/Redis/MinIO configuration are implemented; PostgreSQL packages pgvector and TimescaleDB OSS without creating schemas. One target-server middleware image-build and three-container health smoke passed after the recorded compatibility corrections, and the PostgreSQL-ready native application chain passed locally on 2026-07-30. Extension SQL availability, sustained operation and recovery remain external gates; CI/CD and application production deployment are Unknown.
 - No business implementation may begin until the relevant architecture targets, technology versions, commands, file scope, acceptance mapping, and due reliability/performance gates satisfy `../engineering/AI_CODING_WORKFLOW.md`.
-- V1 is the first implemented release. Direction-document provenance creates no migration or legacy compatibility work.
+- V1.0 is the first implemented product release. Direction-document provenance creates no migration or legacy compatibility work.
+
+## Cumulative Product Release Train
+
+| Release | Entry and outcome | Implementation slices | Required release gate |
+|---|---|---|---|
+| V1.0 — 小说场景 | New task → confirmed `CreationBaseline` → governed initial AI candidates → Review/memory confirmation → first immutable formal novel snapshot and content export | Identity/shell; task and creation baseline; references; settings/characters/outline/initial chapters; initial creation execution; Review/memory/versions; due governance/export/delete/recovery | V1.0 first-due assertions and horizontal gates, including mandatory `DataSafetyGate`; `AvailabilityGate` only when separately made applicable; no release/Cycle or unapproved HA claim |
+| V1.1 — AI 内容分析与运营复盘 | V1.0 formal snapshot → confirmed `OperationValidationBaseline` → packaging/release plan → one real manual release → feedback → AI analysis candidate → formal analysis → formal human decision | V1.0 regression; operation-baseline extension; packaging and release plan; actual release/Cycle; feedback/correction; analysis; continue observation/formal decision; due governance/review export/recovery | One real valid Cycle plus V1.0 cumulative regression and affected horizontal-gate requalification. “Continue observing” cannot satisfy completion |
+| V1.2 — AI 内容创作与运营闭环效果 | Current eligible formal decision → bounded next-round plan/input → AI content or packaging candidates → human-confirmed actual change → adjacent valid release/review → comparison/value result/following Cycle N+2 | V1.0/V1.1 regression; decision-driven execution; next-round content/packaging; adjacent release; Cycle N/N+1 comparison; value collection/reporting; complete governance/export/recovery | All AC-01-35, all PRD 7.5/7.6, the first adjacent pair of real valid Cycles, following Cycle N+2 path, and all affected horizontal-gate evidence |
+| V2.0 — 金融研究 | Stocks/funds/futures analysis and review | Architecture preparation only until a separate approved financial PRD, compliance/data contract, acceptance, and file-level plan exists | No V1 AC may be reused to claim V2 product acceptance |
+
+Every later V1 release must preserve readable formal history and pass every earlier due contract. Database/API/schema migrations, when later approved, require explicit upgrade and rollback evidence; no release may depend on a future release to keep its own formal content readable, exportable, or recoverable.
+
+### Release-train execution order
+
+Phase numbers below group cohesive work; they are not a command to finish V1.2 feature work before V1.0 horizontal controls. Phases 5 and 8 are cross-release lanes, and Phase 9 is three separate release gates:
+
+| Lane | Required before that release |
+|---|---|
+| H0 / V1.0 | Phases 3–4 + only the V1.0 workloads in Phase 5 + the AC-32A/33A/34A and other V1.0 controls in Phase 8 + the V1.0 part of Phase 9 |
+| H1 / V1.1 | H0 regression + Phase 6 + the V1.1 additions in Phases 5/8 + the V1.1 part of Phase 9 |
+| H2 / V1.2 | H0/H1 regression + Phase 7 + the V1.2 additions in Phases 5/8 + the V1.2 part of Phase 9 |
+
+No release may defer its due export, deletion, recovery, Prompt-governance, reliability, performance, accessibility, security, or real-evidence gate merely because that work appears in a later-numbered cross-release section.
+
+### Gate split: data safety versus production availability
+
+Status: `IN_REVIEW / Proposed`.
+
+- `DataSafetyGate` is mandatory at H0 and cumulative at H1/H2. It covers PostgreSQL-authoritative formal records, object/reference/export consistency, atomic and idempotent formal writes, backup/PITR, restore, readable history, deletion non-resurrection, and conservative degradation. Redis remains non-authoritative and must not change formal truth when unavailable or lost.
+- `AvailabilityGate` is a separate deployment/operations gate. It becomes applicable only after an explicit human decision fixes the target environment, measurement window, fault domain, monitoring, capacity, budget, and owner. The Confirmed target remains `99%` during internal MVP validation and is not a commercial SLA.
+- The `99.9%` monthly target, multi-AZ quorum/fencing, N-1 capacity, and replica counts remain `Proposed`; they cannot block H0 merely by appearing in a target architecture. If they are separately selected for V1.0 production, their evidence is required before that production availability claim. A recovery result cannot substitute for availability evidence, and a non-applicable availability gate cannot waive data safety.
+
+### Per-release physical capability allowlist
+
+This execution allowlist mirrors `../uiux/RELEASE_CAPABILITY_MATRIX.md`. Each release manifest expands it to exact route, actor, viewport, state, dialog/action, and negative deep-link assertion; source files must not introduce a route/action merely because a shared component exists.
+
+| Gate | Implementable physical scope | Required negative scope |
+|---|---|---|
+| H0 / V1.0 | AUTH; P01; `CreationBaseline` Stage 0; P02; initial-creation P03; V1.0 Bot/Agent trace/pending/settings/activity; V1.0-scoped A01-A08 including A05; D01, D02 content, D03, D10, D11 content package | No P04/P05, V1.1 operation fields/workloads, D02 packaging, D04-D09, D12, next-round/comparison/value, or V2 route/action |
+| H1 / V1.1 | H0 regression plus `OperationValidationBaseline` Stage 0, P03 packaging handoff, P04, P05 analysis/decision, V1.1 A01-A08 extensions, D02 packaging, D04-D09, D11 review package, D12 `cycleTimeReconciliation` | No P05 next-round/comparison/value, decision-driven creation, D12 `twoCycleSurvey`, or V2 route/action |
+| H2 / V1.2 | H0/H1 regression plus P03 decision-driven creation, P05 next-round/comparison/value/following Cycle N+2, V1.2 A01-A08 extensions, D11 complete-lineage package, D12 `twoCycleSurvey` | No V2 financial route, object, data, or action |
+
+Not-introduced and unknown/stale capabilities are absent from ordinary navigation, Bot targets, pending/activity and mutation; authorized historical objects remain readable only with a truthful freshness state, and no rejected deep link creates partial business state.
+
+The same release manifest must consume the numbered data/API catalog rather than only UI routes. Its business allowlist carries the exact release `T`/`PUB` sets and business internal `INT-001–INT-010`: H0 permits the exact H0 sets, while H1/H2 add their exact `T`/`PUB` deltas and only the approved internal family/schema/capability overlays. H0 allows only `AI_EXECUTION`, `DOCUMENT_PROCESSING`, `EXPORT_GENERATION`, and narrowly scoped `MAINTENANCE`; maintenance permits only `DELETION_RECONCILIATION` and `RECOVERY_CHECKPOINT_BUILD` with their typed targets. Unknown or not-yet-due job types/subtypes, Prompt families, schema versions, and capabilities fail at registration, claim, and report.
+
+An independent operational allowlist carries exactly five H0 rows: `OPS-API-001..003` for API `GET /health/live`, `GET /health/ready`, and `GET /health/dependencies`, plus `OPS-WORKER-001..002` for private Worker `GET /health/live` and `GET /health/ready`. They are outside both the 107-row business Public catalog and the 10-row business Internal catalog, cannot unlock any product route/action/command, and are not evidence of product readiness, `DataSafetyGate`, or `AvailabilityGate`. Production H0 retires the complete ADR-0005 diagnostic chain as one unit: the Web Check page is absent from the product router/build, public `GET /api/v1/system/chain` and `GET /internal/v1/system/status` return `404/410`, and a negative dependency test proves the API no longer calls Worker status. ADR-0005 may retain all three only in an explicitly isolated non-production diagnostic profile; the five approved `OPS-*` health routes remain available as operational exceptions without becoming business capabilities.
+
+Worker/JIT/DeliveryStore failure is interpreted by the registered job type, not by one generic execution screen: AI is shown on its owning execution resource, document processing on the P03 reference-processing state, and export generation on the D11 export-request state. New document processing and new or repeated export generation fail closed; PostgreSQL-backed formal content and request metadata remain readable. An already generated authorized package remains previewable/downloadable only while ObjectStore currently proves the requested version, integrity, authorization, and readable bytes. Mobile may inspect status and such a currently proven existing D11 package, but may not start or retry AI, document processing, export generation, or recovery mutations.
+
+### H0 benchmark input contract
+
+The external PRD already fixes the following H0 workload inputs and they must be present in the benchmark fixtures: no more than 20 files per task, 10 MB per file, 500,000 characters per file, 2,000,000 characters per task, and 300 pages per text PDF. The representative novel fixture also starts from the product default of a 20-chapter outline plus the first 3 chapters; because the user may adjust this in the Creation Baseline, it is not a hard capacity ceiling.
+
+These are inputs, not measured results. Before the H0 performance gate can be classified, a human must still approve lab environment/resources, network, cold/warm state, concurrency and queue profile, sample count/noise, executable commands, and per-test warning/failure thresholds consistent with any already Confirmed product-level targets. Until then the performance gate is `Unverified`; the team must not pre-emptively introduce Redis business state, read replicas, a broker, or another datastore to compensate for an unmeasured result.
+
+### User decision register for release execution
+
+| Decision | Minimum decision record | State until recorded |
+|---|---|---|
+| `UD-PG-01` PostgreSQL | Production/validation writer and fault-domain boundary, backup/PITR mechanism, formal-record RPO implementation and operations owner | `DataSafetyGate` blocked; diagnostic health is insufficient |
+| `UD-OBJ-01` object storage | Business account/bucket, TLS/encryption, isolation, lifecycle/version/delete, backup/restore, and PostgreSQL-object recovery checkpoint | Reference-dependent formalization, export and recovery blocked; middleware health is insufficient |
+| `UD-REC-01` recovery | Recoverable data-set inventory, RTO/RPO exercise, restore owner, deletion-ledger or equivalent non-resurrection mechanism and reconciliation evidence | H0 recovery evidence `Unverified` |
+| `UD-DEG-01` degradation | Per PostgreSQL/object/provider/queue failure: permitted read-only and draft behavior, blocked formal writes/AI actions, freshness disclosure, bounded retry, and user recovery action | Affected mutation and AI execution fail closed |
+| `UD-PERF-01` performance | H0 environment, concurrency, samples, commands, noise and per-test thresholds using the fixed input fixture | H0 performance evidence `Unverified` |
+| `UD-AVL-01` availability | Internal-MVP-only 99% validation or a separately applicable production `AvailabilityGate`; if the latter, fault domain, window, capacity, budget, monitoring and owner | No 99.9% or production-HA claim; `DataSafetyGate` remains applicable |
+
+## Version-Level Traceability Gate
+
+Before business implementation begins for any release, create an approved traceability artifact whose every row names:
+
+- authoritative PRD or UIUX source and exact requirement/scenario ID;
+- repository AC or child assertion, first-due release, and cumulative regression releases;
+- physical allowlist or required negative-capability assertion for the release;
+- user-visible result and deterministic/AI-candidate/human-confirmation boundary;
+- module and singular data owner, public contract and dependency direction;
+- exact implementation and test files after their paths receive explicit approval;
+- functional, UIUX/accessibility, security/privacy, reliability, performance, recovery, and real-evidence gate status;
+- `DataSafetyGate` evidence, `AvailabilityGate` applicability/decision ref, H0 benchmark fixture/profile when due, and all applicable user-decision refs;
+- Passed, Failed, N/A, or Unverified with exact evidence and the recovery/rollback path.
+
+A release marks each due child assertion independently. A split top-level parent remains `Partially qualified / Unverified`, never Passed, until all children in its complete V1.2 scope pass. A not-yet-due child is `Deferred to V1.x`, not Passed or N/A. V1.2 must close the full PRD 7.5/7.6 and UIUX 1-130 mapping; the versioned UIUX scenario split remains a separate approval gate.
 
 ## Phase 1: Architecture and Reliability Review — Current
 
@@ -60,6 +143,7 @@ Deliver a Proposed, reviewable architecture without business code:
 - Affected files: diagnostic source/tests/config under `services/**`, `.env.example`, native and architecture scripts, ADR-0005 and affected registries/runbooks. Former cloud-delivery files are no longer part of this slice.
 - Excluded: authentication, product routes, business APIs/schemas/tables, queue/broker/Redis, object storage, AI providers/jobs, production values, cloud resource creation and successful cloud execution evidence.
 - Reliability/security: two-second API-to-Worker deadline, zero retries, request correlation, truthful 503 degradation, generic correlated 500 responses, no Web polling and no committed secrets.
+- Release-scope boundary: this historical Check/public-chain/internal-status trio is one non-production diagnostic capability. Production H0 removes all three together and retains only the separately allowlisted five `OPS-*` health routes (three API and two private Worker routes); those health routes do not enter product navigation or prove a business release gate.
 - Verification: Web lint/format/typecheck/test/build; API and Worker Ruff/Pyright/pytest; architecture checker plus self-tests; native preflight and three-service smoke; documentation consistency. PostgreSQL-ready execution remains Unverified when the required external runtime is absent.
 - Performance: initial production bundle sizes are recorded in `../engineering/PERFORMANCE_BUDGET.md`; connected latency, image sizes and field metrics await their named environments.
 - Recovery: terminate only launched child processes; reverse only this diagnostic slice if the approved decision is superseded; never delete PostgreSQL data.
@@ -144,53 +228,72 @@ Deliver a Proposed, reviewable architecture without business code:
 - Create only approved manifests, lockfiles, configuration, quality/architecture gates, test harnesses, and measurement entry points.
 - Import/map UIUX `DesignSpec/tokens.json` into one canonical token mechanism; do not add product behavior.
 - Verify install, lint/format, typecheck, unit, integration/contract, E2E, architecture, reliability, build, and performance commands and update their execution state.
-- Establish approved lab environments, datasets, measurement noise, baseline-dependent thresholds, and recovery-test entry points.
+- Establish human-confirmed lab environments, measurement noise, baseline-dependent thresholds, and recovery-test entry points; H0 datasets must retain the fixed external-PRD capacity inputs and the 20-outline/3-chapter default above.
 
-## Phase 3: Identity, Shell, and Work Home — C01-C04
+## Phase 3: V1.0 Identity, Shell, and Work Home — C01-C04
 
 - Implement default user/admin authentication, first password change, lockout, session expiration, route isolation, and recovery.
 - Implement the global shell and P01 regions: shared Bot, continue work, pending summary, and task list with independent loading/failure.
-- Implement Stage 0 and task cockpit with lifecycle/control/visibility/deletion state separation and one server-authoritative next action.
+- Implement the Stage 0 `CreationBaseline` and task cockpit with lifecycle/control/visibility/deletion state separation and one server-authoritative next action. Do not require unconfirmed V1.1 operation fields to create or formalize V1.0 novel content.
 - Cover ambiguity, action-card revalidation, task switching, Bot failure/policy/queue degradation, and mobile read-only behavior.
-- Primary acceptance: AC-01 through AC-07, AC-24, AC-26 through AC-30.
+- Primary acceptance: AC-01 through AC-05, AC-06A, AC-07, AC-24, AC-26 through AC-30.
 
-## Phase 4: References, Creation, Candidates, and Versions — C05-C10
+## Phase 4: V1.0 References, Creation, Candidates, and Versions — C05-C10
 
 - Implement reference upload/processing, rights/provenance, selected fragments, actual-use trace, Prompt-injection isolation, deletion impact, and allowed formats.
 - Implement settings, characters, outline, chapters, candidates, human-edited candidates, Review, disagreements, formal confirmation, work-memory confirmation, complete immutable snapshots, and comparison.
 - Implement save/offline/stale/conflict recovery and prevent formal progress after save failure or unresolved blockers.
-- Primary acceptance: AC-07 through AC-11, AC-24 through AC-32.
+- Primary acceptance: AC-07, AC-08A, AC-09A, AC-10 through AC-11, AC-24 through AC-31, AC-32A, AC-33A, and applicable AC-34A/AC-35 assertions.
 
-## Phase 5: AI Execution and Read-Only Agent Trace — C07-C09
+## Phase 5: Cross-Release Lane — Versioned AI Execution and Read-Only Agent Trace — C07-C09
 
 - Implement execution preview, provider/model/policy/version recording, global paid slot, per-task step bound, up-to-three-model fan-out, queue, partial completion, attempts, retry/model switch, timeout, cost, and budget gates.
 - Implement read-only Agent execution trace and user checkpoints; do not implement arbitrary wiring, custom DAGs, free Agent creation, or Prompt tuning.
 - Verify model/provider data scopes and exclude screenshots from every model request.
-- Primary acceptance: AC-18 through AC-23 and applicable recovery/performance/reliability rows.
+- V1.0 enables only governed first-version novel creation/Review workloads and proves AC-19A. V1.1 adds packaging/analysis workloads and proves AC-19B. V1.2 adds formal-decision-driven next-round creation and proves AC-19C. Stage-irrelevant roles must not execute merely to satisfy cumulative counts.
+- Primary acceptance: AC-18, AC-19A through AC-19C when first due, AC-20/AC-20A/AC-20B through AC-23, and applicable recovery/performance/reliability rows; every added workload requalifies these assertions.
 
-## Phase 6: Packaging, External Release, Feedback, and Cycle — C11-C14
+## Phase 6: V1.1 Packaging, External Release, Feedback, and Single-Cycle Review — C03/C11-C14
 
-- Implement immutable packaging versions and release-plan bindings.
+- Extend the existing task Stage 0 with a separately user-confirmed `OperationValidationBaseline`; preserve `CreationBaseline`, existing formal snapshots, and audit history. Do not silently backfill platform, metric, observation, validation, or manual-baseline facts.
+- Implement AI and human packaging candidates, Review, immutable packaging versions, and release-plan bindings.
 - Implement manual external-release facts, evidence, material-difference classification, and atomic actual-release + Cycle creation.
-- Implement feedback value union, snapshots/corrections, formal analysis, continue observing, validity checklist, human decision, next-round plan, and Cycle comparison.
+- Implement feedback value union, snapshots/corrections, analysis input lineage, AI analysis candidate, user-confirmed formal analysis, and validity checklist.
+- Implement “continue observing” as a standalone observation action that records the next point/reason, creates no formal human-decision record, leaves the Cycle active, and returns to feedback. Implement formal human decision as a separate confirmation path.
+- After every ended Cycle, run D12 `cycleTimeReconciliation` and preserve its evidence so whichever Cycle later becomes N in the first adjacent valid pair already has a trustworthy record; this complex action remains unavailable on mobile.
 - Drive one rehearsal Cycle with fixtures, then real validation only after external/provider/compliance/recovery gates are confirmed.
-- Primary acceptance: AC-12 through AC-17, AC-23, AC-33, and PRD 7.6.
+- Primary acceptance: AC-06B, AC-08B, AC-09B, AC-12 through AC-15, AC-19B, AC-23, AC-32B through AC-34B, all V1.0 cumulative regression, and every PRD 7.6 validity checklist item for the real Cycle; none of those hard conditions may be waived as N/A. AC-16/AC-17 and two-Cycle mechanism completion remain V1.2 due.
 
-## Phase 7: Governance Surfaces, Export, Deletion, and Operations — C15-C18
+## Phase 7: V1.2 Decision-Driven Creation and Closed-Loop Effect — C06/C11-C14
+
+- Convert only a current user-confirmed formal decision into a bounded next-round plan containing goal, change scope, references, actual Agent/model choices, candidate count, budget, expected change, and next release plan.
+- Bind the formal decision and next-round plan into the execution input; AI creates candidates only, and the user separately Reviews and confirms the resulting content snapshot or packaging version.
+- Prove that the preceding valid Cycle N decision was implemented as an actual scoped product change included in the adjacent Cycle N+1 external release; preserve the decision → plan → execution → candidate → formal version → release lineage without claiming that the change caused an external metric outcome.
+- Complete the latter Cycle N+1 in the first adjacent valid pair, adjacent-Cycle comparability classification, non-causal outcome labels, individual-value calculation, and the following-Cycle entry. Normal success may be 1→2→3, but invalid Cycle numbers are never renumbered.
+- Repeat D12 `cycleTimeReconciliation` for Cycle N+1 and add the V1.2 `twoCycleSurvey`; only the simple survey is available as the package-defined mobile write exception.
+- Primary acceptance: AC-16, AC-17, AC-19C, AC-32C through AC-34C, full AC-01 through AC-35 cumulative regression, all PRD 7.5/7.6 rows, and applicable UIUX scenarios.
+
+## Phase 8: Cross-Release Lane — Governance Surfaces, Export, Deletion, and Operations — C15-C18
 
 - Complete the four mutually exclusive drawers, activity popover, configuration versions, model/cost policy, compliance/platform rules, monitoring, audit, and bounded debug access.
 - Implement three approved export packages, task controls, deletion/retention, backup/restore, and audit cleanup.
 - Verify administrators cannot bypass compliance or perform user formal actions.
-- Primary acceptance: AC-31 through AC-35.
+- Qualify each governance/export/recovery capability at the release that first consumes it: AC-32A/33A/34A in V1.0, AC-32B/33B/34B in V1.1, and AC-32C/33C/34C in V1.2. Later release evidence must include earlier-history preservation.
+- Primary acceptance: AC-31 through AC-35 and their versioned children.
 
-## Phase 8: Release and Real-World Validation
+## Phase 9: Per-Release H0/H1/H2 Gates and Real-World Validation
 
-- Map all PRD 7.5 rows, PRD 7.6 Cycle checks, AC-01 through AC-35, and UIUX scenarios 1-130 to exact evidence.
-- Run all Confirmed repository checks and due reliability/performance/security/accessibility/recovery gates.
+- At every release, complete the version-level traceability gate above and map every due AC/child assertion and approved UIUX scenario to exact evidence. At V1.2, close every PRD 7.5 row, PRD 7.6 Cycle check, AC-01 through AC-35, and UIUX scenario 1-130.
+- Run Phase 9 once for H0 before V1.0 release, again for H1 before V1.1 release, and again for H2 before V1.2 release; a later run cannot retrospectively qualify an earlier release.
+- H0 evidence includes its separate business and operational physical allow/deny manifests; negative router/build/dependency evidence that the Check/public-chain/internal-status diagnostic trio is absent while exact `OPS-API-001..003/OPS-WORKER-001..002` remain operational-only; every V1.0 child/scenario ref; first formal snapshot rebuild/compare/export; backup/restore/delete-non-resurrection exercise; mandatory `DataSafetyGate`; and the fixed-input benchmark report with every still-pending profile field visible. `AvailabilityGate` evidence is included only when `UD-AVL-01` makes it applicable.
+- H1 evidence includes the complete H0 regression, updated allow/deny manifest, preserved H0 history, one real valid Cycle, and negative evidence that continued observation or an invalid Cycle does not satisfy completion; every newly affected provider, Prompt, object, degradation, performance and recovery row is requalified.
+- H2 evidence includes complete H0/H1 regression, updated allow/deny manifest, the first adjacent valid Cycle N/N+1 lineage, comparison classification, individual-value result, following Cycle N+2 path, and row-level PRD 7.5/7.6, AC-01-35 and UIUX 1-130 closure.
+- Run all Confirmed repository checks and due reliability/performance/security/accessibility/recovery gates without using an unapproved 99.9% topology to fail H0 or using `DataSafetyGate` evidence to claim HA.
 - Capture required visual evidence at 1440 × 900, 1280 × 720, and 390 × 844.
 - Rehearse failure, timeout, duplicate, partial success, restart, restore, stale input, saturation, provider-policy change, and deletion paths.
-- Complete two consecutive valid real Cycles and record serious trust incidents separately from functional completion.
-- Report mechanism result and individual-value result without claiming causality or market validation.
+- V1.0 completes the first formal novel snapshot without claiming release/Cycle completion. V1.1 completes one real valid Cycle and may not count “continue observing” as a decision or completed review outcome.
+- V1.2 completes two consecutive valid real Cycles and records serious trust incidents separately from functional completion.
+- Report mechanism result and individual-value result without claiming causality or market validation; V1.0/V1.1 must not publish those final V1.2 claims early.
 
 ### Approved local middleware authentication diagnostic — 2026-07-29
 
@@ -207,7 +310,7 @@ Deliver a Proposed, reviewable architecture without business code:
 
 Before each approved implementation slice, replace its phase bullets with or append a scoped plan that names:
 
-- exact acceptance/evidence IDs and user-visible result;
+- exact parent/child acceptance and evidence IDs, first-due release, cumulative regression scope, and user-visible result;
 - files changed and explicitly excluded;
 - module/data owner, public contracts, dependency edges, and compatibility class;
 - security, privacy, accessibility, reliability, performance, release-order, and recovery impact;
@@ -219,6 +322,10 @@ Do not invent source paths before the bootstrap establishes them.
 
 - The active approval scope is not APPROVED, or a required target/runtime/version/command/contract remains Unknown.
 - A product/UIUX requirement conflicts with the approved package or needs new human judgment.
+- The due release lacks the version-level traceability artifact, a parent AC is treated as Passed from an incomplete child set, or a deferred requirement is silently marked Passed/N/A.
+- The release manifest omits its physical allow/deny list, an out-of-version route/action can create state, `DataSafetyGate` is conflated with `AvailabilityGate`, or a 99.9%/HA claim lacks `UD-AVL-01` and its evidence.
+- Any applicable `UD-PG-01` through `UD-PERF-01` decision remains unrecorded, or H0 performance evidence omits one of the fixed PRD capacity inputs while its environment/concurrency/sample/threshold profile remains implicit.
+- A V1.0 task would require V1.1 operation facts to formalize initial novel content, a V1.1 upgrade would rewrite prior formal history, or “continue observing” would create a formal decision/close a Cycle.
 - Work requires an unapproved dependency, API, schema, auth, provider, architecture, deployment, security, sensitive-data, destructive, or budget decision.
 - A production dependency cycle, private cross-owner access, second source of truth, mutable formal-history overwrite, or release/Cycle inconsistency would be introduced.
 - A due reliability/performance/security/recovery gate is missing, Unverified, Failed, or exceeds its Confirmed target.
